@@ -8,6 +8,6 @@ namespace UsersManagement.Context
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options) { }
 
-        public DbSet<UserModel> Users { get; set; }
+        public DbSet<UserModel> Users { get; set; } = null!;
     }
 }
