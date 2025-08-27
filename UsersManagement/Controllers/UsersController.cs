@@ -21,13 +21,24 @@ namespace UsersManagement.Controllers
         public async Task<ActionResult<IEnumerable<UserModel>>> GetUsers()
         {
             var users = await _user.GetUsers();
-            return Ok(users);
+
+            if (!users.Any())
+            {
+                return NotFound("Nenhum usuário cadastrado!");
+            }
+
+            return Ok(users.OrderBy(users => users.Name));
         }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<UserModel>> GetUserById(int id)
         {
             var user = await _user.GetUserById(id);
-            return user is null ? NotFound() : Ok(user);
+
+            if (user is null) {
+                return NotFound($"Usuário com o id {id} não encontrado!");
+            }
+            return Ok(user);
         }
 
         [HttpPost]
@@ -36,9 +47,37 @@ namespace UsersManagement.Controllers
             await _user.AddUser(user);
 
             return CreatedAtAction(
-                nameof(GetUserById), 
-                new { id = user.Id }, 
+                nameof(GetUserById),
+                new { id = user.Id },
                 user);
         }
+
+        [HttpPatch]
+        public async Task<ActionResult<UserModel>> UpdateUser(UserModel user)
+        {
+            var newUser = await _user.UpdateUser(user);
+
+            if (newUser is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(newUser);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteUser(int id)
+        { 
+            var userDeleted = await _user.GetUserById(id);
+
+            if (userDeleted is null)
+            {
+                return NotFound();
+            }
+
+            await _user.DeleteUserById(id);
+            return Ok("Deletado com Sucesso!");
+        }
+        
     }
 }
