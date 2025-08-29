@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
+﻿using Microsoft.EntityFrameworkCore;
 using UsersManagement.Context;
 using UsersManagement.Models;
 
@@ -28,6 +26,7 @@ namespace UsersManagement.Repositories
             {                 
                 throw new Exception($"Usuário com o id {id} não encontrado!");
             }
+
             return user;
         }
 
@@ -37,20 +36,31 @@ namespace UsersManagement.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<UserModel?> UpdateUser(UserModel user)
+        public async Task<UserModel?> UpdateUser(int id, UserModelDTO userDTO)
         {
-            var userToUpdate = await GetUserById(user.Id);
+            var userToUpdate = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
 
             if (userToUpdate is null)
             {
                 return null;
             }
 
-            userToUpdate.Name = user.Name;
-            userToUpdate.Celphone = user.Celphone;
-            userToUpdate.Email = user.Email;
+            userToUpdate.Name = userDTO.Name;
+            userToUpdate.Cpf = userDTO.Cpf;
+            userToUpdate.Celphone = userDTO.Celphone;
+            userToUpdate.Email = userDTO.Email;
 
-            _context.Users.Update(userToUpdate);
+
+            if (string.IsNullOrEmpty(userToUpdate.Name))
+            {
+                throw new Exception("O nome não pode ser vazio.");
+            }
+
+            if (string.IsNullOrEmpty(userToUpdate.Cpf))
+            {
+                throw new Exception("O CPF não pode ser vazio.");
+            }
+
             await _context.SaveChangesAsync();
             return userToUpdate;
         }

@@ -2,12 +2,12 @@
 
 namespace UsersManagement.Models
 {
-    public class UserModel
+    public class UserModelDTO
     {
-        public int Id { get; set; }
         public required string Name { get; set; }
         public required string Cpf { get; set; }
         public string? Celphone { get; set; }
         public string? Email { get; set; }
+
     }
 }

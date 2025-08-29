@@ -42,7 +42,7 @@ namespace UsersManagement.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserModel>> AddUser(UserModel user)
+        public async Task<ActionResult<UserModel>> AddUser([FromBody] UserModel user)
         {
             await _user.AddUser(user);
 
@@ -52,10 +52,10 @@ namespace UsersManagement.Controllers
                 user);
         }
 
-        [HttpPatch]
-        public async Task<ActionResult<UserModel>> UpdateUser(UserModel user)
+        [HttpPut("{id}")]
+        public async Task<ActionResult<UserModel>> UpdateUser(int id, [FromBody] UserModelDTO user)
         {
-            var newUser = await _user.UpdateUser(user);
+            var newUser = await _user.UpdateUser(id, user);
 
             if (newUser is null)
             {
@@ -66,17 +66,17 @@ namespace UsersManagement.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteUser(int id)
+        public async Task<IActionResult> DeleteUser(int id)
         { 
-            var userDeleted = await _user.GetUserById(id);
+            var userToDelete = await _user.GetUserById(id);
 
-            if (userDeleted is null)
+            if (userToDelete is null)
             {
                 return NotFound();
             }
 
             await _user.DeleteUserById(id);
-            return Ok("Deletado com Sucesso!");
+            return NoContent();
         }
         
     }
