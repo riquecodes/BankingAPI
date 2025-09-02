@@ -4,11 +4,11 @@ using UsersManagement.Models;
 
 namespace UsersManagement.Repositories
 {
-    public class UserRepository : IUsersRepository
+    public class IUserRepository : IUsersRepository
     {
         private readonly AppDbContext _context;
 
-        public UserRepository(AppDbContext context)
+        public IUserRepository(AppDbContext context)
         {
             _context = context;
         }
@@ -36,33 +36,11 @@ namespace UsersManagement.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<UserModel?> UpdateUser(int id, UserModelDTO userDTO)
+        public async Task<UserModelDTO?> UpdateUser(int id, UserModelDTO userDTO)
         {
-            var userToUpdate = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-
-            if (userToUpdate is null)
-            {
-                return null;
-            }
-
-            userToUpdate.Name = userDTO.Name;
-            userToUpdate.Cpf = userDTO.Cpf;
-            userToUpdate.Celphone = userDTO.Celphone;
-            userToUpdate.Email = userDTO.Email;
-
-
-            if (string.IsNullOrEmpty(userToUpdate.Name))
-            {
-                throw new Exception("O nome não pode ser vazio.");
-            }
-
-            if (string.IsNullOrEmpty(userToUpdate.Cpf))
-            {
-                throw new Exception("O CPF não pode ser vazio.");
-            }
-
+            _context.UsersDTO.Update(userDTO);
             await _context.SaveChangesAsync();
-            return userToUpdate;
+            return userDTO;
         }
 
         public async Task DeleteUserById(int id)

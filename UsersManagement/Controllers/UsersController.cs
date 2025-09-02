@@ -1,21 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Runtime.InteropServices.Marshalling;
-using UsersManagement.Context;
 using UsersManagement.Models;
 using UsersManagement.Repositories;
+using UsersManagement.Services;
 
 namespace UsersManagement.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    public class UsersController(IUserService user) : ControllerBase
     {
-        private readonly IUsersRepository _user;
-        public UsersController(IUsersRepository user)
-        {
-            _user = user;
-        }
+        private readonly IUserService _user = user;
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserModel>>> GetUsers()
