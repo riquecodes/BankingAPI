@@ -4,11 +4,11 @@ using UsersManagement.Models;
 
 namespace UsersManagement.Repositories
 {
-    public class IUserRepository : IUsersRepository
+    public class UserRepository : IUserRepository
     {
         private readonly AppDbContext _context;
 
-        public IUserRepository(AppDbContext context)
+        public UserRepository(AppDbContext context)
         {
             _context = context;
         }
@@ -18,22 +18,23 @@ namespace UsersManagement.Repositories
             return await _context.Users.ToListAsync();
         }
 
-        public async Task<UserModel> GetUserById(int id)
+        public async Task<UserModel?> GetUserById(int id)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-
-            if (user is null)
-            {                 
-                throw new Exception($"Usuário com o id {id} não encontrado!");
-            }
-
-            return user;
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public async Task AddUser(UserModel user)
+        public async Task<UserModelDTO> CreateUser(UserModel user)
         {
             await _context.AddAsync(user);
             await _context.SaveChangesAsync();
+
+            return new UserModelDTO
+            {
+                Name = user.Name,
+                Cpf = user.Cpf,
+                Celphone = user.Celphone,
+                Email = user.Email
+            };
         }
 
         public async Task<UserModelDTO?> UpdateUser(int id, UserModelDTO userDTO)
@@ -43,12 +44,19 @@ namespace UsersManagement.Repositories
             return userDTO;
         }
 
-        public async Task DeleteUserById(int id)
+        public async Task<bool> DeleteUserById(int id)
         { 
             var userToDelete = await GetUserById(id);
+            
+            if (userToDelete is null)
+            {
+                return false;
+            }
 
             _context.Users.Remove(userToDelete);
             await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }
