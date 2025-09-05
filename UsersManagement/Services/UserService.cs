@@ -21,12 +21,24 @@ namespace UsersManagement.Services
         {
             var users = await _userRepository.GetUsers();
 
+            if (!users.Any())
+            { 
+                throw new KeyNotFoundException("No users found!");
+            }
+
             return users.OrderBy(u => u.Name);
         }
 
         public async Task<UserModel?> GetUserById(int id)
         {
-            return await _userRepository.GetUserById(id);
+            var user = await _userRepository.GetUserById(id);
+
+            if (user is null) 
+            { 
+                throw new KeyNotFoundException($"User with id {id} not found!");
+            }
+
+            return user;
         }
 
         public async Task<UserModel> CreateUser(UserModelDTO userDTO)
@@ -49,14 +61,14 @@ namespace UsersManagement.Services
             return createdUser;
         }
         
-        public async Task<UserModelDTO?> UpdateUser(int id, UserModelDTO userDTO)
+        public async Task<UserModel?> UpdateUser(int id, UserModelDTO userDTO)
         {
 
-            var userToUpdate = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            var userToUpdate = await _userRepository.GetUserById(id);
 
             if (userToUpdate is null)
             {
-                return null;
+                throw new KeyNotFoundException($"User with id {id} not found!");
             }
 
             userToUpdate.Name = userDTO.Name;
@@ -67,15 +79,21 @@ namespace UsersManagement.Services
             if (string.IsNullOrEmpty(userDTO.Name)
                 || string.IsNullOrEmpty(userDTO.Cpf))
             {
-                throw new Exception("Name and CPF are required fields!");
+                throw new ArgumentException("Name and CPF are required fields!");
             }
 
-            return await _userRepository.UpdateUser(id, userDTO);
+            return await _userRepository.UpdateUser(id, userToUpdate);
         }
 
         public async Task<bool> DeleteUserById(int id)
         {
             var userToDelete = await _userRepository.GetUserById(id);
+
+            if (userToDelete is null)
+            {
+                throw new KeyNotFoundException($"User with id {id} not found!");
+            }
+
             return await _userRepository.DeleteUserById(id);
 
         }

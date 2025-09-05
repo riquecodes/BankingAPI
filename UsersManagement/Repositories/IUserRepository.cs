@@ -7,7 +7,7 @@ namespace UsersManagement.Repositories
         Task<IEnumerable<UserModel>> GetUsers();
         Task<UserModel?> GetUserById(int id);
         Task<UserModel> CreateUser(UserModel user);
-        Task<UserModelDTO?> UpdateUser(int id, UserModelDTO user);
+        Task<UserModel?> UpdateUser(int id, UserModel user);
         Task<bool> DeleteUserById(int id);
     }
 }

@@ -7,7 +7,7 @@ namespace UsersManagement.Services
         Task<IEnumerable<UserModel>> GetUsers();
         Task<UserModel?> GetUserById(int id);
         Task<UserModel> CreateUser(UserModelDTO userDTO);
-        Task<UserModelDTO?> UpdateUser(int id, UserModelDTO userDTO);
+        Task<UserModel?> UpdateUser(int id, UserModelDTO userDTO);
         Task<bool> DeleteUserById(int id);
     }
 }

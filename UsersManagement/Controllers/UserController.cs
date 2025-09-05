@@ -20,11 +20,6 @@ namespace UsersManagement.Controllers
         {
             var users = await _userService.GetUsers();
 
-            if (!users.Any())
-            {
-                return NotFound(new { message = "No users found!" });
-            }
-
             return Ok(users);
         }
 
@@ -33,9 +28,6 @@ namespace UsersManagement.Controllers
         {
             var user = await _userService.GetUserById(id);
 
-            if (user is null) {
-                return NotFound(new { message = $"User with id {id} not found!" });
-            }
             return Ok(user);
         }
 
@@ -51,29 +43,18 @@ namespace UsersManagement.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<UserModel>> UpdateUser(int id, [FromBody] UserModelDTO user)
+        public async Task<ActionResult<UserModel>> UpdateUser(int id, [FromBody] UserModelDTO userDTO)
         {
-            var newUser = await _userService.UpdateUser(id, user);
+            var updatedUser = await _userService.UpdateUser(id, userDTO);
 
-            if (newUser is null)
-            {
-                return NotFound();
-            }
-
-            return Ok(newUser);
+            return Ok(updatedUser);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         { 
-            var userToDelete = await _userService.GetUserById(id);
-
-            if (userToDelete is null)
-            {
-                return NotFound();
-            }
-
             await _userService.DeleteUserById(id);
+
             return NoContent();
         }
         

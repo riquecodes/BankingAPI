@@ -23,25 +23,18 @@ namespace UsersManagement.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public async Task<UserModelDTO> CreateUser(UserModel user)
+        public async Task<UserModel> CreateUser(UserModel user)
         {
-            await _context.AddAsync(user);
+            await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
-
-            return new UserModelDTO
-            {
-                Name = user.Name,
-                Cpf = user.Cpf,
-                Celphone = user.Celphone,
-                Email = user.Email
-            };
+            return user;
         }
 
-        public async Task<UserModelDTO?> UpdateUser(int id, UserModelDTO userDTO)
+        public async Task<UserModel?> UpdateUser(int id, UserModel user)
         {
-            _context.UsersDTO.Update(userDTO);
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
-            return userDTO;
+            return user;
         }
 
         public async Task<bool> DeleteUserById(int id)
