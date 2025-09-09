@@ -1,21 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using UsersManagement.Context;
+﻿using UsersManagement.Context;
 using UsersManagement.Models;
 using UsersManagement.Repositories;
 
 namespace UsersManagement.Services
 {
-    public class UserService : IUserService
+    public class UserService(IUserRepository userRepository) : IUserService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly AppDbContext _context;
-
-        public UserService(IUserRepository userRepository, AppDbContext dbContext)
-        {
-            _userRepository = userRepository;
-            _context = dbContext;
-        }
+        private readonly IUserRepository _userRepository = userRepository;
 
         public async Task<IEnumerable<UserModel>> GetUsers()
         {
@@ -73,12 +64,6 @@ namespace UsersManagement.Services
             userToUpdate.Cpf = userDTO.Cpf;
             userToUpdate.Celphone = userDTO.Celphone;
             userToUpdate.Email = userDTO.Email;
-
-            if (string.IsNullOrEmpty(userDTO.Name)
-                || string.IsNullOrEmpty(userDTO.Cpf))
-            {
-                throw new ArgumentException("Name and CPF are required fields!");
-            }
 
             return await _userRepository.UpdateUser(id, userToUpdate);
         }
