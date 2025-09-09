@@ -43,11 +43,7 @@ namespace UsersManagement.Services
 
         public async Task<UserModel> CreateUser(UserModelDTO userDTO)
         {
-            if (string.IsNullOrEmpty(userDTO.Name)
-                || string.IsNullOrEmpty(userDTO.Cpf))
-            {
-                throw new ArgumentException("Name and CPF are required fields!");
-            }
+            ValidateUserDTO(userDTO);
 
             var newUser = new UserModel
             {
@@ -70,6 +66,8 @@ namespace UsersManagement.Services
             {
                 throw new KeyNotFoundException($"User with id {id} not found!");
             }
+
+            ValidateUserDTO(userDTO);
 
             userToUpdate.Name = userDTO.Name;
             userToUpdate.Cpf = userDTO.Cpf;
@@ -96,6 +94,15 @@ namespace UsersManagement.Services
 
             return await _userRepository.DeleteUserById(id);
 
+        }
+
+        private void ValidateUserDTO(UserModelDTO userDTO)
+        {
+            if (string.IsNullOrEmpty(userDTO.Name)
+                || string.IsNullOrEmpty(userDTO.Cpf))
+            {
+                throw new ArgumentException("Name and CPF are required fields!");
+            }
         }
     }
 }
