@@ -1,15 +1,15 @@
-@UsersManagement_HostAddress = http://localhost:5062/api
+@BankingAPI_HostAddress = http://localhost:5062/api
 
 ### Get all users
-GET {{UsersManagement_HostAddress}}/Users
+GET {{BankingAPI_HostAddress}}/Users
 Accept: application/json
 
 ### Get a user by ID
-GET {{UsersManagement_HostAddress}}/Users/1
+GET {{BankingAPI_HostAddress}}/Users/1
 Accept: application/json
 
 ### Create a new user
-POST {{UsersManagement_HostAddress}}/Users
+POST {{BankingAPI_HostAddress}}/Users
 Content-Type: application/json
 {
   "name": "John Doe",
@@ -20,18 +20,18 @@ Content-Type: application/json
 Accept: application/json
 
 ### Update an existing user
-PUT {{UsersManagement_HostAddress}}/Users/1
+PUT {{BankingAPI_HostAddress}}/Users/1
 Content-Type: application/json
 {
   "name": "Jane Doe",
   "cpf": "12345678900",
   "celphone": "54991892379",
-  "email": "
+  "email": ""
 }
 Accept: application/json
 
 ### Delete a user
-DELETE {{UsersManagement_HostAddress}}/Users/1
+DELETE {{BankingAPI_HostAddress}}/Users/1
 Accept: application/json
 
 ###

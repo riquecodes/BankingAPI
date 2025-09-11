@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UsersManagement.Models;
-using UsersManagement.Services;
+using BankingAPI.Models;
+using BankingAPI.Services;
 
-namespace UsersManagement.Controllers
+namespace BankingAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -15,6 +16,7 @@ namespace UsersManagement.Controllers
             _userService = userService;
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserModel>>> GetUsers()
         {
@@ -31,6 +33,7 @@ namespace UsersManagement.Controllers
             return Ok(user);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult<UserModel>> CreateUser([FromBody] UserModelDTO userDTO)
         {
@@ -42,6 +45,7 @@ namespace UsersManagement.Controllers
                 newUser);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<UserModel>> UpdateUser(int id, [FromBody] UserModelDTO userDTO)
         {
@@ -50,6 +54,7 @@ namespace UsersManagement.Controllers
             return Ok(updatedUser);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         { 
@@ -57,6 +62,5 @@ namespace UsersManagement.Controllers
 
             return NoContent();
         }
-        
     }
 }

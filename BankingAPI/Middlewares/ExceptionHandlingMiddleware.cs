@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 
-namespace UsersManagement.Middlewares
+namespace BankingAPI.Middlewares
 {
     public class ExceptionHandlingMiddleware
     {
@@ -39,6 +39,9 @@ namespace UsersManagement.Middlewares
                     break;
                 case KeyNotFoundException:
                     statusCode = HttpStatusCode.NotFound;
+                    break;
+                case UnauthorizedAccessException:
+                    statusCode = HttpStatusCode.Unauthorized;
                     break;
                 default:
                     statusCode = HttpStatusCode.InternalServerError;

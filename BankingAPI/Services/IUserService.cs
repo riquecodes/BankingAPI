@@ -1,6 +1,6 @@
-﻿using UsersManagement.Models;
+﻿using BankingAPI.Models;
 
-namespace UsersManagement.Services
+namespace BankingAPI.Services
 {
     public interface IUserService
     {

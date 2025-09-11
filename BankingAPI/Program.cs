@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using UsersManagement.Context;
-using UsersManagement.Middlewares;
-using UsersManagement.Repositories;
-using UsersManagement.Services;
+using BankingAPI.Context;
+using BankingAPI.Middlewares;
+using BankingAPI.Repositories;
+using BankingAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +24,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API User Management v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Banking API v1");
 });
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

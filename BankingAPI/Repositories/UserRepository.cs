@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using UsersManagement.Context;
-using UsersManagement.Models;
+using BankingAPI.Context;
+using BankingAPI.Models;
 
-namespace UsersManagement.Repositories
+namespace BankingAPI.Repositories
 {
     public class UserRepository : IUserRepository
     {
@@ -21,6 +21,11 @@ namespace UsersManagement.Repositories
         public async Task<UserModel?> GetUserById(int id)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        }
+
+        public async Task<UserModel?> GetUserByCPF(string cpf)
+        {
+            return await _context.Users.SingleOrDefaultAsync(u => u.Cpf == cpf);
         }
 
         public async Task<UserModel> CreateUser(UserModel user)

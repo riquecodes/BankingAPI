@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using UsersManagement.Models;
+using BankingAPI.Models;
 
-namespace UsersManagement.Context
+namespace BankingAPI.Context
 {
     public class AppDbContext : DbContext
     {
