@@ -10,10 +10,12 @@ namespace BankingAPI.Controllers
     {
         private readonly IAuthService _authService = authService;
 
+        [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginDTO loginDTO)
         {
-            var user = await _authService.Login(loginDTO);
-            return Ok(user);
+            var authResponse = await _authService.Login(loginDTO);
+
+            return Ok(authResponse);
         }
     }
 }

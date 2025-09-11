@@ -4,6 +4,6 @@ namespace BankingAPI.Services
 {
     public interface IAuthService
     {
-        Task<UserModel> Login(LoginDTO loginDTO);
+        Task<AuthResponseDTO> Login(LoginDTO loginDTO);
     }
 }
