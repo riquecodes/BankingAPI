@@ -1,0 +1,19 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using BankingAPI.Models;
+using BankingAPI.Services;
+
+namespace BankingAPI.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController(IAuthService authService) : Controller
+    {
+        private readonly IAuthService _authService = authService;
+
+        public async Task<ActionResult> Login([FromBody] LoginDTO loginDTO)
+        {
+            var user = await _authService.Login(loginDTO);
+            return Ok(user);
+        }
+    }
+}
