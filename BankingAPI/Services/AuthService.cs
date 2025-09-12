@@ -8,10 +8,16 @@ using System.Text;
 
 namespace BankingAPI.Services
 {
-    public class AuthService(UserRepository userRepository, IConfiguration configuration) : IAuthService
+    public class AuthService : IAuthService
     {
-        private readonly UserRepository _userRepository = userRepository;
-        private readonly IConfiguration _configuration = configuration;
+        private readonly IUserRepository _userRepository;
+        private readonly IConfiguration _configuration;
+
+        public AuthService(IUserRepository userRepository, IConfiguration configuration)
+        {
+            _userRepository = userRepository;
+            _configuration = configuration;
+        }
 
         public async Task<AuthResponseDTO> Login(LoginDTO loginDTO)
         {

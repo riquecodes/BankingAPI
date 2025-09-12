@@ -7,11 +7,11 @@ namespace BankingAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
 
-        public UsersController(IUserService userService)
+        public UserController(IUserService userService)
         {
             _userService = userService;
         }
@@ -33,7 +33,8 @@ namespace BankingAPI.Controllers
             return Ok(user);
         }
 
-        [Authorize(Roles = "admin")]
+        //[Authorize(Roles = "admin")]
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult<UserModel>> CreateUser([FromBody] UserModelDTO userDTO)
         {

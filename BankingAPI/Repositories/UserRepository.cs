@@ -25,7 +25,7 @@ namespace BankingAPI.Repositories
 
         public async Task<UserModel?> GetUserByCPF(string cpf)
         {
-            return await _context.Users.SingleOrDefaultAsync(u => u.Cpf == cpf);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Cpf == cpf);
         }
 
         public async Task<UserModel> CreateUser(UserModel user)

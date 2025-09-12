@@ -1,10 +1,12 @@
 using BankingAPI.Context;
 using BankingAPI.Middlewares;
+using BankingAPI.Models;
 using BankingAPI.Repositories;
 using BankingAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -60,14 +62,16 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddControllers();
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
