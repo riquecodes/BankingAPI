@@ -32,21 +32,21 @@
                 return user;
             }
 
-            public async Task<UserModel> CreateUser(UserModelDTO userDTO)
+            public async Task<UserModel> CreateUser(RegisterDTO userRegister)
             {
-                ValidateUserDTO(userDTO);
+                ValidateRegisterDTO(userRegister);
 
-                CreatePasswordHash(userDTO.Password, out byte[] hash, out byte[] salt);
+                CreatePasswordHash(userRegister.Password, out byte[] hash, out byte[] salt);
 
                 var newUser = new UserModel
                 {
-                    Name = userDTO.Name,
-                    Cpf = userDTO.Cpf,
-                    Celphone = userDTO.Celphone,
-                    Email = userDTO.Email,
+                    Name = userRegister.Name,
+                    Cpf = userRegister.Cpf,
+                    Celphone = userRegister.Celphone,
+                    Email = userRegister.Email,
                     PasswordHash = hash,
                     PasswordSalt = salt,
-                    Role = userDTO.Role
+                    Role = userRegister.Role
                 };
 
                 var createdUser = await _userRepository.CreateUser(newUser);
@@ -95,12 +95,21 @@
                 }
             }
 
+            private void ValidateRegisterDTO(RegisterDTO userRegister)
+            {
+                if (string.IsNullOrEmpty(userRegister.Name)
+                    || string.IsNullOrEmpty(userRegister.Cpf))
+                {
+                    throw new ArgumentException("Name, CPF and Password are required fields!");
+                }
+            }
+
             private void ValidateUserDTO(UserModelDTO userDTO)
             {
                 if (string.IsNullOrEmpty(userDTO.Name)
                     || string.IsNullOrEmpty(userDTO.Cpf))
                 {
-                    throw new ArgumentException("Name, CPF and Password are required fields!");
+                    throw new ArgumentException("Name and CPF are required fields!");
                 }
             }
         }

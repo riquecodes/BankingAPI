@@ -33,12 +33,12 @@ namespace BankingAPI.Controllers
             return Ok(user);
         }
 
-        //[Authorize(Roles = "admin")]
-        [AllowAnonymous]
+        [Authorize(Roles = "admin")]
         [HttpPost]
-        public async Task<ActionResult<UserModel>> CreateUser([FromBody] UserModelDTO userDTO)
+        public async Task<ActionResult<UserModel>> CreateUser([FromBody] RegisterDTO userRegister)
         {
-            var newUser = await _userService.CreateUser(userDTO);
+            //TODO Ajustar retorno para não retornar a senha
+            var newUser = await _userService.CreateUser(userRegister);
 
             return CreatedAtAction(
                 nameof(GetUserById),

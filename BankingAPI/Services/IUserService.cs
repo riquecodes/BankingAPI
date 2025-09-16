@@ -6,7 +6,7 @@ namespace BankingAPI.Services
     {
         Task<IEnumerable<UserModel>> GetUsers();
         Task<UserModel?> GetUserById(int id);
-        Task<UserModel> CreateUser(UserModelDTO userDTO);
+        Task<UserModel> CreateUser(RegisterDTO userRegister);
         Task<UserModel?> UpdateUser(int id, UserModelDTO userDTO);
         Task<bool> DeleteUserById(int id);
     }
