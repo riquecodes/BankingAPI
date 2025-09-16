@@ -22,5 +22,11 @@ namespace BankingAPI.Controllers
 
             return Ok(authResponse);
         }
+
+        [HttpPost("register")]
+        public ActionResult Register([FromBody] UserModelDTO userRegister)
+        {
+            return Ok("Register endpoint");
+        }
     }
 }
