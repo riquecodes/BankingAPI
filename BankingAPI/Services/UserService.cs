@@ -32,10 +32,29 @@
                 return user;
             }
 
-            public async Task<UserModel> CreateUser(RegisterDTO userRegister)
+        public async Task<UserResponseDTO?> GetUserByCpf(string cpf)
             {
-                ValidateRegisterDTO(userRegister);
+            var user = await _userRepository.GetUserByCpf(cpf);
 
+            if (user is null)
+            {
+                throw new KeyNotFoundException($"User with CPF {cpf} not found!");
+            }
+
+            return user;
+        }
+
+        public async Task<UserModel?> GetFullUserById(int id)
+        {
+            var user = await _userRepository.GetFullUserById(id);
+
+            if (user is null)
+            {
+                throw new KeyNotFoundException($"User with id {id} not found!");
+            }
+
+            return user;
+        }
                 CreatePasswordHash(userRegister.Password, out byte[] hash, out byte[] salt);
 
                 var newUser = new UserModel

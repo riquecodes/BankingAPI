@@ -34,6 +34,14 @@ namespace BankingAPI.Controllers
         }
 
         [Authorize(Roles = "admin")]
+        [HttpGet("cpf/{cpf}")]
+        public async Task<ActionResult<UserResponseDTO>> GetUserByCpf(string cpf)
+        {
+            var user = await _userService.GetUserByCpf(cpf);
+
+            return Ok(user);
+        }
+
         [HttpPost]
         public async Task<ActionResult<UserModel>> CreateUser([FromBody] RegisterDTO userRegister)
         {

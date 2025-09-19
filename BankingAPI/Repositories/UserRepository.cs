@@ -16,18 +16,75 @@ namespace BankingAPI.Repositories
         public async Task<IEnumerable<UserModel>> GetUsers()
         {
             return await _context.Users.ToListAsync();
-        }
-
-        public async Task<UserModel?> GetUserById(int id)
+        public async Task<UserResponseDTO?> GetUserById(int id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _context.Users.FindAsync(id);
+
+            if (user is null)
+            {
+                return null;
+            }
+
+            return new UserResponseDTO
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Cpf = user.Cpf,
+                Celphone = user.Celphone,
+                Email = user.Email,
+                Role = user.Role,
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            };
         }
 
-        public async Task<UserModel?> GetUserByCPF(string cpf)
+        public async Task<UserResponseDTO?> GetUserByCpf(string cpf)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Cpf == cpf);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Cpf == cpf);
+
+            if (user is null)
+            {
+                return null;
+            }
+
+            return new UserResponseDTO
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Cpf = user.Cpf,
+                Celphone = user.Celphone,
+                Email = user.Email,
+                Role = user.Role,
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            };
         }
 
+        public async Task<UserModel?> GetFullUserById(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+
+            if (user is null)
+        {
+                return null;
+            }
+
+            return user;
+        }
+
+        public async Task<UserModel?> GetFullUserByCpf(string cpf)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Cpf == cpf);
+
+            if (user is null)
+            {
+                return null;
+        }
+
+            return user;
+        }
         public async Task<UserModel> CreateUser(UserModel user)
         {
             await _context.Users.AddAsync(user);
