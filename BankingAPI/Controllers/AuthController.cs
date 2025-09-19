@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BankingAPI.Models;
 using BankingAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BankingAPI.Controllers
 {
@@ -24,7 +25,12 @@ namespace BankingAPI.Controllers
         }
 
         [HttpPost("register")]
-        public ActionResult Register([FromBody] UserModelDTO userRegister)
+        public async Task<ActionResult> Register([FromBody] RegisterDTO userRegister)
+        {
+            var createdUser = await _authService.Register(userRegister);
+            return Ok(new { message = "User registered successfully!" });
+        }
+
         {
             return Ok("Register endpoint");
         }

@@ -102,6 +102,13 @@
                 {
                     throw new ArgumentException("Name, CPF and Password are required fields!");
                 }
+
+            var userExists = await _userRepository.GetUserByCpf(userRegister.Cpf);
+
+            if (userExists is not null)
+            {
+                throw new ArgumentException("A user with this CPF already exists.");
+            }
             }
 
             private void ValidateUserDTO(UserModelDTO userDTO)

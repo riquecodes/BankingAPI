@@ -21,7 +21,7 @@ namespace BankingAPI.Services
 
         public async Task<AuthResponseDTO> Login(LoginDTO loginDTO)
         {
-            var user = await _userRepository.GetUserByCPF(loginDTO.Cpf);
+            var user = await _userRepository.GetFullUserByCpf(loginDTO.Cpf);
 
             if (user is null)
             {
@@ -46,7 +46,48 @@ namespace BankingAPI.Services
                 Id = user.Id,
                 Name = user.Name,
                 Cpf = user.Cpf,
-                Role = user.Role
+                Role = user.Role,
+                TemporaryPassword = user.TemporaryPassword
+            };
+        }
+
+        public async Task<UserResponseDTO> Register(RegisterDTO userRegister)
+        {
+            var userExists = await _userRepository.GetUserByCpf(userRegister.Cpf);
+
+            if (userExists is not null)
+            {
+                throw new ArgumentException("A user with this CPF already exists.");
+            }
+
+            ValidateRegisterDTO(userRegister);
+
+            ValidatePasswordStrength(userRegister.Password);
+
+            CreatePasswordHash(userRegister.Password, out byte[] hash, out byte[] salt);
+
+            var newUser = new UserModel
+            {
+                Name = userRegister.Name,
+                Cpf = userRegister.Cpf,
+                Email = userRegister.Email,
+                Celphone = userRegister.Celphone,
+                PasswordHash = hash,
+                PasswordSalt = salt
+            };
+
+            var createdUser = await _userRepository.CreateUser(newUser);
+
+            return new UserResponseDTO
+            {
+                Id = createdUser.Id,
+                Name = createdUser.Name,
+                Cpf = createdUser.Cpf,
+                Email = createdUser.Email,
+                Celphone = createdUser.Celphone,
+                Role = createdUser.Role,
+                IsActive = createdUser.IsActive,
+                CreatedAt = createdUser.CreatedAt
             };
         }
 
@@ -78,11 +119,48 @@ namespace BankingAPI.Services
 
         private bool VerifyPassword(string password, byte[] storedHash, byte[] storedSalt)
         {
-            using (var hmac = new HMACSHA512(storedSalt))
-            {
+            using var hmac = new HMACSHA512(storedSalt);
                 var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
                 return computedHash.SequenceEqual(storedHash);
             }
+
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        {
+            using (var hmac = new System.Security.Cryptography.HMACSHA512())
+            {
+                passwordSalt = hmac.Key;
+                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+        }
+
+        private void ValidateRegisterDTO(RegisterDTO userRegister)
+        {
+            if (string.IsNullOrEmpty(userRegister.Name)
+                || string.IsNullOrEmpty(userRegister.Cpf))
+            {
+                throw new ArgumentException("Name and CPF are required fields!");
+            }
+        }
+
+        private void ValidatePasswordStrength(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("Password cannot be empty.");
+
+            if (password.Length < 8)
+                throw new ArgumentException("Password must be at least 8 characters long.");
+
+            if (!password.Any(char.IsUpper))
+                throw new ArgumentException("Password must contain at least one uppercase letter.");
+
+            if (!password.Any(char.IsLower))
+                throw new ArgumentException("Password must contain at least one lowercase letter.");
+
+            if (!password.Any(char.IsDigit))
+                throw new ArgumentException("Password must contain at least one number.");
+
+            if (!password.Any(ch => "!@#$%^&*()_+-=[]{}|;:,.<>?".Contains(ch)))
+                throw new ArgumentException("Password must contain at least one special character.");
         }
     }
 }
