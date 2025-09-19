@@ -13,5 +13,6 @@
         public bool IsActive { get; set; } = true;
         public bool TemporaryPassword { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
     }
 }

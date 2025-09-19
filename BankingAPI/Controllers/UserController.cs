@@ -16,17 +16,18 @@ namespace BankingAPI.Controllers
             _userService = userService;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserModel>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserResponseDTO>>> GetUsers()
         {
             var users = await _userService.GetUsers();
 
             return Ok(users);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<UserModel>> GetUserById(int id)
+        [Authorize(Roles = "admin")]
+        [HttpGet("id/{id}")]
+        public async Task<ActionResult<UserResponseDTO>> GetUserById(int id)
         {
             var user = await _userService.GetUserById(id);
 
@@ -42,10 +43,10 @@ namespace BankingAPI.Controllers
             return Ok(user);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
-        public async Task<ActionResult<UserModel>> CreateUser([FromBody] RegisterDTO userRegister)
+        public async Task<ActionResult<UserResponseDTO>> CreateUser([FromBody] RegisterDTO userRegister)
         {
-            //TODO Ajustar retorno para não retornar a senha
             var newUser = await _userService.CreateUser(userRegister);
 
             return CreatedAtAction(
@@ -56,7 +57,7 @@ namespace BankingAPI.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
-        public async Task<ActionResult<UserModel>> UpdateUser(int id, [FromBody] UserModelDTO userDTO)
+        public async Task<ActionResult<UserResponseDTO>> UpdateUser(int id, [FromBody] UserModelDTO userDTO)
         {
             var updatedUser = await _userService.UpdateUser(id, userDTO);
 

@@ -1,39 +1,38 @@
-﻿using BankingAPI.Context;
-    using BankingAPI.Models;
-    using BankingAPI.Repositories;
+﻿using BankingAPI.Models;
+using BankingAPI.Repositories;
 
-    namespace BankingAPI.Services
+namespace BankingAPI.Services
+{
+    public class UserService(IUserRepository userRepository) : IUserService
     {
-        public class UserService(IUserRepository userRepository) : IUserService
+        private readonly IUserRepository _userRepository = userRepository;
+
+        public async Task<IEnumerable<UserResponseDTO>> GetUsers()
         {
-            private readonly IUserRepository _userRepository = userRepository;
+            var users = await _userRepository.GetUsers();
 
-            public async Task<IEnumerable<UserModel>> GetUsers()
-            {
-                var users = await _userRepository.GetUsers();
-
-                if (!users.Any())
-                { 
-                    throw new KeyNotFoundException("No users found!");
-                }
-
-                return users.OrderBy(u => u.Name);
+            if (!users.Any())
+            { 
+                throw new KeyNotFoundException("No users found!");
             }
 
-            public async Task<UserModel?> GetUserById(int id)
+            return users.OrderBy(u => u.Name);
+        }
+
+        public async Task<UserResponseDTO?> GetUserById(int id)
+        {
+            var user = await _userRepository.GetUserById(id);
+
+            if (user is null) 
             {
-                var user = await _userRepository.GetUserById(id);
-
-                if (user is null) 
-                { 
-                    throw new KeyNotFoundException($"User with id {id} not found!");
-                }
-
-                return user;
+                throw new KeyNotFoundException($"User with id {id} not found!");
             }
+
+            return user;
+        }
 
         public async Task<UserResponseDTO?> GetUserByCpf(string cpf)
-            {
+        {
             var user = await _userRepository.GetUserByCpf(cpf);
 
             if (user is null)
@@ -55,72 +54,108 @@
 
             return user;
         }
-                CreatePasswordHash(userRegister.Password, out byte[] hash, out byte[] salt);
 
-                var newUser = new UserModel
-                {
-                    Name = userRegister.Name,
-                    Cpf = userRegister.Cpf,
-                    Celphone = userRegister.Celphone,
-                    Email = userRegister.Email,
-                    PasswordHash = hash,
-                    PasswordSalt = salt,
-                    Role = userRegister.Role
-                };
+        public async Task<UserResponseDTO> CreateUser(RegisterDTO userRegister)
+        {
+            await ValidateRegisterDTO(userRegister);
 
-                var createdUser = await _userRepository.CreateUser(newUser);
-                return createdUser;
-            }
+            CreatePasswordHash(userRegister.Password, out byte[] hash, out byte[] salt);
+
+            var newUser = new UserModel
+            {
+                Name = userRegister.Name,
+                Cpf = userRegister.Cpf,
+                Celphone = userRegister.Celphone,
+                Email = userRegister.Email,
+                PasswordHash = hash,
+                PasswordSalt = salt,
+                Role = userRegister.Role,
+                TemporaryPassword = true,
+            };
+
+            var createdUser = await _userRepository.CreateUser(newUser);
+
+            return new UserResponseDTO 
+            { 
+                Id = createdUser.Id,
+                Name = createdUser.Name,
+                Cpf = createdUser.Cpf,
+                Email = createdUser.Email,
+                Celphone = createdUser.Celphone,
+                Role = createdUser.Role,
+                IsActive = createdUser.IsActive,
+                CreatedAt = createdUser.CreatedAt
+            };
+        }
         
-            public async Task<UserModel?> UpdateUser(int id, UserModelDTO userDTO)
+        public async Task<UserResponseDTO?> UpdateUser(int id, UserModelDTO userDTO)
+        {
+
+            var userToUpdate = await _userRepository.GetFullUserById(id);
+
+            if (userToUpdate is null)
             {
-
-                var userToUpdate = await _userRepository.GetUserById(id);
-
-                if (userToUpdate is null)
-                {
-                    throw new KeyNotFoundException($"User with id {id} not found!");
-                }
-
-                ValidateUserDTO(userDTO);
-
-                userToUpdate.Name = userDTO.Name;
-                userToUpdate.Cpf = userDTO.Cpf;
-                userToUpdate.Celphone = userDTO.Celphone;
-                userToUpdate.Email = userDTO.Email;
-
-                return await _userRepository.UpdateUser(id, userToUpdate);
+                throw new KeyNotFoundException($"User with id {id} not found!");
             }
 
-            public async Task<bool> DeleteUserById(int id)
+            userToUpdate.Name = userDTO.Name;
+            userToUpdate.Cpf = userDTO.Cpf;
+            userToUpdate.Celphone = userDTO.Celphone;
+            userToUpdate.Email = userDTO.Email;
+            userToUpdate.Role = userDTO.Role;
+            userToUpdate.IsActive = userDTO.IsActive;
+            userToUpdate.UpdatedAt = DateTime.Now;
+
+            await _userRepository.UpdateUser(id, userToUpdate);
+
+            var updatedResponse = new UserResponseDTO
             {
-                var userToDelete = await _userRepository.GetUserById(id);
+                Id = id,
+                Name = userToUpdate.Name,
+                Cpf = userToUpdate.Cpf,
+                Celphone = userToUpdate.Celphone,
+                Email = userToUpdate.Email,
+                Role = userToUpdate.Role,
+                IsActive = userToUpdate.IsActive,
+                CreatedAt = userToUpdate.CreatedAt,
+                UpdatedAt = DateTime.Now
+            };
 
-                if (userToDelete is null)
-                {
-                    throw new KeyNotFoundException($"User with id {id} not found!");
-                }
+            ValidateUserDTO(updatedResponse);
 
-                return await _userRepository.DeleteUserById(id);
+            return updatedResponse;
+        }
 
+        public async Task<bool> DeleteUserById(int id)
+        {
+            var userToDelete = await _userRepository.GetFullUserById(id);
+
+            if (userToDelete is null)
+            {
+                throw new KeyNotFoundException($"User with id {id} not found!");
             }
 
-            private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-            {
-                using (var hmac = new System.Security.Cryptography.HMACSHA512())
-                {
-                    passwordSalt = hmac.Key;
-                    passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-                }
-            }
+            return await _userRepository.DeleteUserById(id);
 
-            private void ValidateRegisterDTO(RegisterDTO userRegister)
+        }
+
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        {
+            using (var hmac = new System.Security.Cryptography.HMACSHA512())
             {
-                if (string.IsNullOrEmpty(userRegister.Name)
-                    || string.IsNullOrEmpty(userRegister.Cpf))
-                {
-                    throw new ArgumentException("Name, CPF and Password are required fields!");
-                }
+                passwordSalt = hmac.Key;
+                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+        }
+
+        private async Task ValidateRegisterDTO(RegisterDTO userRegister)
+        {
+            if (string.IsNullOrEmpty(userRegister.Name)
+                || string.IsNullOrEmpty(userRegister.Cpf)
+                || string.IsNullOrEmpty(userRegister.Password))
+            {
+                throw new ArgumentException("Name, CPF and Password are required fields!");
+            }
 
             var userExists = await _userRepository.GetUserByCpf(userRegister.Cpf);
 
@@ -128,15 +163,15 @@
             {
                 throw new ArgumentException("A user with this CPF already exists.");
             }
-            }
+        }
 
-            private void ValidateUserDTO(UserModelDTO userDTO)
+        private void ValidateUserDTO(UserResponseDTO userDTO)
+        {
+            if (string.IsNullOrEmpty(userDTO.Name)
+                || string.IsNullOrEmpty(userDTO.Cpf))
             {
-                if (string.IsNullOrEmpty(userDTO.Name)
-                    || string.IsNullOrEmpty(userDTO.Cpf))
-                {
-                    throw new ArgumentException("Name and CPF are required fields!");
-                }
+                throw new ArgumentException("Name and CPF are required fields!");
             }
         }
     }
+}

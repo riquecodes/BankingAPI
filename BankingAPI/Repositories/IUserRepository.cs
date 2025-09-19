@@ -4,7 +4,7 @@ namespace BankingAPI.Repositories
 {
     public interface IUserRepository
     {
-        Task<IEnumerable<UserModel>> GetUsers();
+        Task<IEnumerable<UserResponseDTO>> GetUsers();
         Task<UserResponseDTO?> GetUserById(int id);
         Task<UserResponseDTO?> GetUserByCpf(string cpf);
         Task<UserModel?> GetFullUserById(int id);

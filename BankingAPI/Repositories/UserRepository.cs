@@ -13,9 +13,23 @@ namespace BankingAPI.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<UserModel>> GetUsers()
+        public async Task<IEnumerable<UserResponseDTO>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            var users = await _context.Users.ToListAsync();
+            return users.Select(u => new UserResponseDTO
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Cpf = u.Cpf,
+                Celphone = u.Celphone,
+                Email = u.Email,
+                Role = u.Role,
+                IsActive = u.IsActive,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt
+            });
+        }
+
         public async Task<UserResponseDTO?> GetUserById(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -67,7 +81,7 @@ namespace BankingAPI.Repositories
             var user = await _context.Users.FindAsync(id);
 
             if (user is null)
-        {
+            {
                 return null;
             }
 
@@ -81,10 +95,11 @@ namespace BankingAPI.Repositories
             if (user is null)
             {
                 return null;
-        }
+            }
 
             return user;
         }
+
         public async Task<UserModel> CreateUser(UserModel user)
         {
             await _context.Users.AddAsync(user);
@@ -94,14 +109,27 @@ namespace BankingAPI.Repositories
 
         public async Task<UserModel?> UpdateUser(int id, UserModel user)
         {
-            _context.Users.Update(user);
+            var updatedUser = await GetFullUserById(id);
+
+            if (updatedUser is null)
+            {
+                return null;
+            }
+
+            updatedUser.Name = user.Name;
+            updatedUser.Celphone = user.Celphone;
+            updatedUser.Email = user.Email;
+            updatedUser.Role = user.Role;
+            updatedUser.IsActive = user.IsActive;
+            updatedUser.UpdatedAt = DateTime.Now;
+
             await _context.SaveChangesAsync();
-            return user;
+            return updatedUser;
         }
 
         public async Task<bool> DeleteUserById(int id)
         { 
-            var userToDelete = await GetUserById(id);
+            var userToDelete = await GetFullUserById(id);
             
             if (userToDelete is null)
             {
