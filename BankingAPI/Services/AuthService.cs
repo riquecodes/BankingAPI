@@ -91,6 +91,32 @@ namespace BankingAPI.Services
             };
         }
 
+        public async Task ChangePassword(int userId, string currentPassword, string newPassword)
+        {
+            ValidatePasswordStrength(newPassword);
+
+            var user = await _userRepository.GetFullUserById(userId);
+
+            if (user is null)
+            {
+                throw new KeyNotFoundException("User not found!");
+            }
+
+            if (!VerifyPassword(currentPassword, user.PasswordHash, user.PasswordSalt))
+            {
+                throw new UnauthorizedAccessException("Current password is incorrect!");
+            }
+
+            using (var hmac = new HMACSHA512())
+            {
+                user.PasswordSalt = hmac.Key;
+                user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(newPassword));
+            }
+
+            user.TemporaryPassword = false;
+            await _userRepository.UpdateUser(user.Id, user);
+        }
+
         private string GenerateJwtToken(UserModel user)
         {
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]!);
@@ -120,9 +146,9 @@ namespace BankingAPI.Services
         private bool VerifyPassword(string password, byte[] storedHash, byte[] storedSalt)
         {
             using var hmac = new HMACSHA512(storedSalt);
-                var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return computedHash.SequenceEqual(storedHash);
-            }
+            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+            return computedHash.SequenceEqual(storedHash);
+        }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {

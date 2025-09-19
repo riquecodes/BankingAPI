@@ -11,6 +11,7 @@
         public required byte[] PasswordSalt { get; set; }
         public string Role { get; set; } = "client";
         public bool IsActive { get; set; } = true;
+        public bool TemporaryPassword { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

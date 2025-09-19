@@ -2,6 +2,7 @@
 using BankingAPI.Models;
 using BankingAPI.Services;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BankingAPI.Controllers
 {
@@ -31,8 +32,14 @@ namespace BankingAPI.Controllers
             return Ok(new { message = "User registered successfully!" });
         }
 
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordDTO changePasswordDTO)
         {
-            return Ok("Register endpoint");
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            await _authService.ChangePassword(userId, changePasswordDTO.CurrentPassword, changePasswordDTO.NewPassword);
+            return Ok(new { message = "Password updated successfully!" });
         }
     }
 }

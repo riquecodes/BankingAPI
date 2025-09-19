@@ -7,5 +7,6 @@
         public required string Name { get; set; }
         public required string Cpf { get; set; }
         public required string Role { get; set; }
+        public bool TemporaryPassword { get; set; } = false;
     }
 }
