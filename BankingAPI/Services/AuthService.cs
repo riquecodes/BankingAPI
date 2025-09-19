@@ -170,23 +170,28 @@ namespace BankingAPI.Services
 
         private void ValidatePasswordStrength(string password)
         {
+            var errors = new List<string>();
+
             if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentException("Password cannot be empty.");
+                errors.Add("Password cannot be empty.");
 
             if (password.Length < 8)
-                throw new ArgumentException("Password must be at least 8 characters long.");
+                errors.Add("Password must be at least 8 characters long.");
 
             if (!password.Any(char.IsUpper))
-                throw new ArgumentException("Password must contain at least one uppercase letter.");
+                errors.Add("Password must contain at least one uppercase letter.");
 
             if (!password.Any(char.IsLower))
-                throw new ArgumentException("Password must contain at least one lowercase letter.");
+                errors.Add("Password must contain at least one lowercase letter.");
 
             if (!password.Any(char.IsDigit))
-                throw new ArgumentException("Password must contain at least one number.");
+                errors.Add("Password must contain at least one number.");
 
             if (!password.Any(ch => "!@#$%^&*()_+-=[]{}|;:,.<>?".Contains(ch)))
-                throw new ArgumentException("Password must contain at least one special character.");
+                errors.Add("Password must contain at least one special character.");
+
+            if (errors.Any())
+                throw new ArgumentException(string.Join(" ", errors));
         }
     }
 }
