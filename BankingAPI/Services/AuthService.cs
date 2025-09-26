@@ -1,4 +1,5 @@
-﻿using BankingAPI.Models;
+﻿using BankingAPI.Controllers;
+using BankingAPI.Models;
 using BankingAPI.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,11 +13,13 @@ namespace BankingAPI.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthService(IUserRepository userRepository, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, IConfiguration configuration, ILogger<AuthController> logger)
         {
             _userRepository = userRepository;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<AuthResponseDTO> Login(LoginDTO loginDTO)
@@ -25,16 +28,19 @@ namespace BankingAPI.Services
 
             if (user is null)
             {
+                _logger.LogWarning("Login failed for CPF {Cpf}: user not found", loginDTO.Cpf);
                 throw new UnauthorizedAccessException("Invalid CPF or Password!");
             }
             
             if (!VerifyPassword(loginDTO.Password, user.PasswordHash, user.PasswordSalt))
             {
+                _logger.LogWarning("Login failed for CPF {Cpf}: incorrect password", loginDTO.Cpf);
                 throw new UnauthorizedAccessException("Invalid CPF or Password!");
             }
 
             if (!user.IsActive)
-            { 
+            {
+                _logger.LogWarning("Login failed for CPF {Cpf}: user inactive", loginDTO.Cpf);
                 throw new UnauthorizedAccessException("User is inactive!");
             }
 
@@ -57,6 +63,7 @@ namespace BankingAPI.Services
 
             if (userExists is not null)
             {
+                _logger.LogWarning("Register failed for CPF {Cpf}:  CPF already exists", userExists.Cpf);
                 throw new ArgumentException("A user with this CPF already exists.");
             }
 
@@ -99,11 +106,13 @@ namespace BankingAPI.Services
 
             if (user is null)
             {
+                _logger.LogWarning("Change Password attempt failed for ID {id}: user not found", userId);
                 throw new KeyNotFoundException("User not found!");
             }
 
             if (!VerifyPassword(currentPassword, user.PasswordHash, user.PasswordSalt))
             {
+                _logger.LogWarning("Change Password attempt failed for ID {id}: incorrect current password", userId);
                 throw new UnauthorizedAccessException("Current password is incorrect!");
             }
 
@@ -152,10 +161,10 @@ namespace BankingAPI.Services
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
+            using (var hmac = new HMACSHA512())
             {
                 passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
             }
         }
 
