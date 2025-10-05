@@ -83,6 +83,15 @@ namespace BankingAPI.Services
                 PasswordSalt = salt
             };
 
+            var account = new AccountModel
+            {
+                AccountNumber = GenerateAccountNumber(),
+                Balance = 0,
+                IsActive = true,
+                CreatedAt = DateTime.Now,
+                UserId = newUser.Id
+            };
+
             var createdUser = await _userRepository.CreateUser(newUser);
 
             return new UserResponseDTO
@@ -201,6 +210,12 @@ namespace BankingAPI.Services
 
             if (errors.Any())
                 throw new ArgumentException(string.Join(" ", errors));
+        }
+
+        public string GenerateAccountNumber()
+        { 
+            var random = new Random();
+            return random.Next(10000000, 99999999).ToString();
         }
     }
 }
