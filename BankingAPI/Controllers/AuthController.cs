@@ -18,7 +18,7 @@ namespace BankingAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult> Login([FromBody] LoginDTO loginDTO)
+        public async Task<ActionResult<AuthResponseDTO>> Login([FromBody] LoginDTO loginDTO)
         {
             var authResponse = await _authService.Login(loginDTO);
 
@@ -26,7 +26,7 @@ namespace BankingAPI.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult> Register([FromBody] RegisterDTO userRegister)
+        public async Task<ActionResult<UserResponseDTO>> Register([FromBody] RegisterDTO userRegister)
         {
             var createdUser = await _authService.Register(userRegister);
             return Ok(new { message = "User registered successfully!" });
