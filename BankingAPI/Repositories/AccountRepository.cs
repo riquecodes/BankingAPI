@@ -1,5 +1,6 @@
 ﻿using BankingAPI.Context;
 using BankingAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankingAPI.Repositories
 {
@@ -15,6 +16,23 @@ namespace BankingAPI.Repositories
         public async Task<AccountModel?> GetAccountById(int id)
         {
             return await _context.Accounts.FindAsync(id);
+        }
+
+        public async Task<IEnumerable<AccountModel>> GetAccountsByUserId(int userId)
+        {
+            return await _context.Accounts
+                .Where(a => a.UserId == userId)
+                .ToListAsync();
+        }
+
+        public async Task<decimal> GetBalanceById(int id)
+        {
+            var balance = await _context.Accounts
+                .Where(a => a.Id == id)
+                .Select(a => a.Balance)
+                .FirstOrDefaultAsync();
+
+            return balance;
         }
 
         public async Task<AccountModel> CreateAccount(AccountModel account)
