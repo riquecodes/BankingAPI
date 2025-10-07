@@ -12,14 +12,16 @@ namespace BankingAPI.Services
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IAccountRepository _accountRepository;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthController> _logger;
 
-        public AuthService(IUserRepository userRepository, IConfiguration configuration, ILogger<AuthController> logger)
+        public AuthService(IUserRepository userRepository, IConfiguration configuration, ILogger<AuthController> logger, IAccountRepository accountRepository)
         {
             _userRepository = userRepository;
             _configuration = configuration;
             _logger = logger;
+            _accountRepository = accountRepository;
         }
 
         public async Task<AuthResponseDTO> Login(LoginDTO loginDTO)
@@ -83,16 +85,21 @@ namespace BankingAPI.Services
                 PasswordSalt = salt
             };
 
-            var account = new AccountModel
+            var createdUser = await _userRepository.CreateUser(newUser);
+            Console.WriteLine($"DEBUG: createdUser.Id = {createdUser.Id}");
+
+            var newAccount = new AccountModel
             {
                 AccountNumber = GenerateAccountNumber(),
                 Balance = 0,
                 IsActive = true,
                 CreatedAt = DateTime.Now,
-                UserId = newUser.Id
+                UserId = createdUser.Id
             };
 
-            var createdUser = await _userRepository.CreateUser(newUser);
+            await _accountRepository.CreateAccount(newAccount);
+
+            createdUser.Accounts = new List<AccountModel> { newAccount };
 
             return new UserResponseDTO
             {
@@ -159,7 +166,6 @@ namespace BankingAPI.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-
 
         private bool VerifyPassword(string password, byte[] storedHash, byte[] storedSalt)
         {
