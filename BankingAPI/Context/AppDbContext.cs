@@ -24,6 +24,13 @@ namespace BankingAPI.Context
             modelBuilder.Entity<AccountModel>()
                 .Property(a => a.AccountType)
                 .HasConversion<int>();
+
+            // configure one-to-one relationship between Account and AccountSecurity
+            modelBuilder.Entity<AccountSecurityModel>()
+                .HasOne(s => s.Account)
+                .WithOne(a => a.AccountSecurity)
+                .HasForeignKey<AccountSecurityModel>(s => s.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
