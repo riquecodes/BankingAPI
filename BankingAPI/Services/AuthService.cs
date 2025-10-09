@@ -86,7 +86,6 @@ namespace BankingAPI.Services
             };
 
             var createdUser = await _userRepository.CreateUser(newUser);
-            Console.WriteLine($"DEBUG: createdUser.Id = {createdUser.Id}");
 
             var newAccount = new AccountModel
             {

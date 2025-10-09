@@ -20,5 +20,6 @@
         public DateTime? UpdatedAt { get; set; }
 
         public UserModel User { get; set; } = null!;
+        public AccountSecurityModel? AccountSecurity { get; set; }
     }
 }
