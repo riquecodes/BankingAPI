@@ -39,6 +39,18 @@ namespace BankingAPI.Controllers
 
             return Ok(balance);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<AccountModel>> CreateAccount([FromBody] AccountModel account)
+        {
+            var newAccount = await _accountService.CreateAccount(account);
+
+            return CreatedAtAction(
+                nameof(GetAccountById), 
+                new { id = newAccount.Id },
+                newAccount);
+        }
+
         [HttpPost("{accountId}/set-transaction-pin")]
         public async Task<ActionResult> SetTransactionPin(int accountId, [FromBody] TransactionPasswordDTO transactionPin)
         {
