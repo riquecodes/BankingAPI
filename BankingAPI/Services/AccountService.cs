@@ -8,12 +8,10 @@ namespace BankingAPI.Services
 {
     public class AccountService : IAccountService
     {
-        private readonly IConfiguration _configuration;
         private readonly IAccountRepository _accountRepository;
         private readonly IUserRepository _userRepository;
-        public AccountService(IConfiguration configuration, IAccountRepository accountRepository, IUserRepository userRepository)
+        public AccountService(IAccountRepository accountRepository, IUserRepository userRepository)
         {
-            _configuration = configuration;
             _accountRepository = accountRepository;
             _userRepository = userRepository;
         }
@@ -54,7 +52,26 @@ namespace BankingAPI.Services
 
         public async Task<AccountModel> CreateAccount(AccountModel account)
         {
-            await _accountRepository.CreateAccount(account);
+            var user = await _userRepository.GetUserById(account.UserId);
+            if (user is null)
+            { 
+                throw new ArgumentException("User not found.");
+            }
+
+            var existingAccount = await _accountRepository.GetAccountsByUserId(account.UserId);
+            if (existingAccount.Any(a => a.AccountType == account.AccountType))
+            { 
+                throw new ArgumentException("User already has an account of this type.");
+            }
+
+            var newAccount = new AccountModel
+            {
+                UserId = account.UserId,
+                AccountNumber = GenerateAccountNumber(),
+                AccountType = account.AccountType,
+            };
+
+
             return account;
         }
 
@@ -95,6 +112,12 @@ namespace BankingAPI.Services
                 pinSalt = hmac.Key;
                 pinHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(pin));
             }
+        }
+
+        public string GenerateAccountNumber()
+        {
+            var random = new Random();
+            return random.Next(10000000, 99999999).ToString();
         }
     }
 }

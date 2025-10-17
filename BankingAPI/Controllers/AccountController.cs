@@ -15,10 +15,34 @@ namespace BankingAPI.Controllers
             _accountService = accountService;
         }
 
-        [HttpPost("{accountId}/set-transaction-password")]
-        public async Task<ActionResult> SetTransactionPassword(int accountId, [FromBody] TransactionPasswordDTO transactionPassword)
+        [HttpGet("accountId/{id}")]
+        public async Task<ActionResult<AccountModel>> GetAccountById(int id)
         {
-            await _accountService.SetTransactionPassword(accountId, transactionPassword.TemporaryPassword);
+            var account = await _accountService.GetAccountById(id);
+
+            return Ok(account);
+        }
+
+        [HttpGet("accounts/{userId}")]
+        public async Task<ActionResult<AccountModel>> GetAccountsByUserId(int userId)
+        { 
+            var accounts = await _accountService.GetAccountsByUserId(userId);
+
+            return Ok(accounts);
+
+        }
+
+        [HttpGet("{id}/balance")]
+        public async Task<ActionResult<decimal>> GetBalanceById(int id)
+        {
+            var balance = await _accountService.GetBalanceById(id);
+
+            return Ok(balance);
+        }
+        [HttpPost("{accountId}/set-transaction-pin")]
+        public async Task<ActionResult> SetTransactionPin(int accountId, [FromBody] TransactionPasswordDTO transactionPin)
+        {
+            await _accountService.SetTransactionPin(accountId, transactionPin.TemporaryPassword);
             return Ok(new { message = "Transaction Password registered succesfully!" });
         }
     }
