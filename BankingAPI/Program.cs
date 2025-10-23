@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +62,27 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.Name
+                ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                ?? "anonymous",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 10,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsync("Limite de requisições excedido. Tente novamente em instantes.", token);
+    };
+});
 
 builder.Services.AddControllers();
 
@@ -83,6 +105,8 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Banking API v1");
 });
+
+app.UseRateLimiter();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
