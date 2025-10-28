@@ -78,7 +78,10 @@ namespace BankingAPI.Repositories
 
         public async Task<UserModel?> GetFullUserById(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+                .Include(u => u.Accounts)
+                .Include(u => u.UserSecurity)
+                .FirstOrDefaultAsync(u => u.Id == id);
 
             if (user is null)
             {
