@@ -50,12 +50,5 @@ namespace BankingAPI.Controllers
                 new { id = newAccount.Id },
                 newAccount);
         }
-
-        [HttpPost("{accountId}/set-transaction-pin")]
-        public async Task<ActionResult> SetTransactionPin(int accountId, [FromBody] TransactionPasswordDTO transactionPin)
-        {
-            await _accountService.SetTransactionPin(accountId, transactionPin.TemporaryPassword);
-            return Ok(new { message = "Transaction Password registered succesfully!" });
-        }
     }
 }

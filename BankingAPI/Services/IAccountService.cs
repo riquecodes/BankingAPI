@@ -8,6 +8,5 @@ namespace BankingAPI.Services
         Task<IEnumerable<AccountModel>> GetAccountsByUserId(int userId);
         Task<decimal> GetBalanceById(int id);
         Task<AccountModel> CreateAccount(AccountModel account);
-        Task SetTransactionPin(int accountId, string transactionPin);
     }
 }

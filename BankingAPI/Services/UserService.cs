@@ -1,11 +1,13 @@
 ﻿using BankingAPI.Models;
 using BankingAPI.Repositories;
+using BankingAPI.Utils;
 
 namespace BankingAPI.Services
 {
-    public class UserService(IUserRepository userRepository) : IUserService
+    public class UserService(IUserRepository userRepository, IAccountRepository accountRepository) : IUserService
     {
         private readonly IUserRepository _userRepository = userRepository;
+        private readonly IAccountRepository _accountRepository = accountRepository;
 
         public async Task<IEnumerable<UserResponseDTO>> GetUsers()
         {
@@ -59,7 +61,7 @@ namespace BankingAPI.Services
         {
             await ValidateRegisterDTO(userRegister);
 
-            CreatePasswordHash(userRegister.Password, out byte[] hash, out byte[] salt);
+            SecurityUtils.CreatePasswordHash(userRegister.Password, out byte[] hash, out byte[] salt);
 
             var newUser = new UserModel
             {
@@ -137,15 +139,6 @@ namespace BankingAPI.Services
 
             return await _userRepository.DeleteUserById(id);
 
-        }
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            }
         }
 
         private async Task ValidateRegisterDTO(RegisterDTO userRegister)

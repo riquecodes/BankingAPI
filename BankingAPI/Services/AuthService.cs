@@ -1,11 +1,10 @@
 ﻿using BankingAPI.Controllers;
 using BankingAPI.Models;
 using BankingAPI.Repositories;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using BankingAPI.Utils;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BankingAPI.Services
 {
@@ -34,7 +33,7 @@ namespace BankingAPI.Services
                 throw new UnauthorizedAccessException("Invalid CPF or Password!");
             }
             
-            if (!VerifyPassword(loginDTO.Password, user.PasswordHash, user.PasswordSalt))
+            if (!SecurityUtils.VerifyPassword(loginDTO.Password, user.PasswordHash, user.PasswordSalt))
             {
                 _logger.LogWarning("Login failed for CPF {Cpf}: incorrect password", loginDTO.Cpf);
                 throw new UnauthorizedAccessException("Invalid CPF or Password!");
@@ -46,7 +45,7 @@ namespace BankingAPI.Services
                 throw new UnauthorizedAccessException("User is inactive!");
             }
 
-            var token = GenerateJwtToken(user);
+            var token = SecurityUtils.GenerateJwtToken(user, _configuration);
 
             return new AuthResponseDTO
             {
@@ -61,19 +60,19 @@ namespace BankingAPI.Services
 
         public async Task<UserResponseDTO> Register(RegisterDTO userRegister)
         {
-            var userExists = await _userRepository.GetUserByCpf(userRegister.Cpf);
+            var existingUser = await _userRepository.GetUserByCpf(userRegister.Cpf);
 
-            if (userExists is not null)
+            if (existingUser is not null)
             {
-                _logger.LogWarning("Register failed for CPF {Cpf}:  CPF already exists", userExists.Cpf);
+                _logger.LogWarning("Register failed for CPF {Cpf}:  CPF already exists", existingUser.Cpf);
                 throw new ArgumentException("A user with this CPF already exists.");
             }
 
             ValidateRegisterDTO(userRegister);
 
-            ValidatePasswordStrength(userRegister.Password);
+            SecurityUtils.ValidatePasswordStrength(userRegister.Password);
 
-            CreatePasswordHash(userRegister.Password, out byte[] hash, out byte[] salt);
+            SecurityUtils.CreatePasswordHash(userRegister.Password, out byte[] hash, out byte[] salt);
 
             var newUser = new UserModel
             {
@@ -115,7 +114,7 @@ namespace BankingAPI.Services
 
         public async Task ChangePassword(int userId, string currentPassword, string newPassword)
         {
-            ValidatePasswordStrength(newPassword);
+            SecurityUtils.ValidatePasswordStrength(newPassword);
 
             var user = await _userRepository.GetFullUserById(userId);
 
@@ -125,7 +124,7 @@ namespace BankingAPI.Services
                 throw new KeyNotFoundException("User not found!");
             }
 
-            if (!VerifyPassword(currentPassword, user.PasswordHash, user.PasswordSalt))
+            if (!SecurityUtils.VerifyPassword(currentPassword, user.PasswordHash, user.PasswordSalt))
             {
                 _logger.LogWarning("Change Password attempt failed for ID {id}: incorrect current password", userId);
                 throw new UnauthorizedAccessException("Current password is incorrect!");
@@ -141,45 +140,41 @@ namespace BankingAPI.Services
             await _userRepository.UpdateUser(user.Id, user);
         }
 
-        private string GenerateJwtToken(UserModel user)
+        public async Task SetTransactionPin(int userId, string transactionPin)
         {
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]!);
+            var user = await _userRepository.GetFullUserById(userId);
 
-            var claims = new[]
+            if (user is null)
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:ExpireMinutes"]!)),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"],
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
-
-        private bool VerifyPassword(string password, byte[] storedHash, byte[] storedSalt)
-        {
-            using var hmac = new HMACSHA512(storedSalt);
-            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return computedHash.SequenceEqual(storedHash);
-        }
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+                throw new KeyNotFoundException("User not found.");
             }
+
+            var account = await _accountRepository.GetAccountById(user.Accounts.First().Id);
+
+            if (account is null)
+            {
+                throw new KeyNotFoundException("Account not found.");
+            }
+
+            var correctPin = Regex.IsMatch(transactionPin, @"^\d{4}$");
+
+            if (!correctPin)
+            {
+                throw new ArgumentException("Pin must contain exactly 4 digits.");
+            }
+
+            if (user.UserSecurity is not null)
+            {
+                throw new InvalidOperationException("Transaction PIN is already set. Use 'Forgot my PIN' to update.");
+            }
+
+            SecurityUtils.CreateTransactionPinHash(transactionPin, out byte[] pinHash, out byte[] pinSalt);
+
+            user.UserSecurity = new UserSecurityModel
+            {
+                TransactionPinHash = pinHash,
+                TransactionPinSalt = pinSalt
+            };
         }
 
         private void ValidateRegisterDTO(RegisterDTO userRegister)
@@ -189,32 +184,6 @@ namespace BankingAPI.Services
             {
                 throw new ArgumentException("Name and CPF are required fields!");
             }
-        }
-
-        private void ValidatePasswordStrength(string password)
-        {
-            var errors = new List<string>();
-
-            if (string.IsNullOrWhiteSpace(password))
-                errors.Add("Password cannot be empty.");
-
-            if (password.Length < 8)
-                errors.Add("Password must be at least 8 characters long.");
-
-            if (!password.Any(char.IsUpper))
-                errors.Add("Password must contain at least one uppercase letter.");
-
-            if (!password.Any(char.IsLower))
-                errors.Add("Password must contain at least one lowercase letter.");
-
-            if (!password.Any(char.IsDigit))
-                errors.Add("Password must contain at least one number.");
-
-            if (!password.Any(ch => "!@#$%^&*()_+-=[]{}|;:,.<>?".Contains(ch)))
-                errors.Add("Password must contain at least one special character.");
-
-            if (errors.Any())
-                throw new ArgumentException(string.Join(" ", errors));
         }
 
         public string GenerateAccountNumber()

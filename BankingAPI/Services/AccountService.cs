@@ -1,8 +1,5 @@
 ﻿using BankingAPI.Models;
 using BankingAPI.Repositories;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace BankingAPI.Services
 {
@@ -10,6 +7,7 @@ namespace BankingAPI.Services
     {
         private readonly IAccountRepository _accountRepository;
         private readonly IUserRepository _userRepository;
+
         public AccountService(IAccountRepository accountRepository, IUserRepository userRepository)
         {
             _accountRepository = accountRepository;
@@ -52,7 +50,7 @@ namespace BankingAPI.Services
 
         public async Task<AccountModel> CreateAccount(AccountModel account)
         {
-            var user = await _userRepository.GetUserById(account.UserId);
+            var user = await _userRepository.GetFullUserById(account.UserId);
             if (user is null)
             { 
                 throw new ArgumentException("User not found.");
@@ -69,49 +67,11 @@ namespace BankingAPI.Services
                 UserId = account.UserId,
                 AccountNumber = GenerateAccountNumber(),
                 AccountType = account.AccountType,
+                User = user
             };
 
 
             return account;
-        }
-
-        public async Task SetTransactionPin(int accountId, string transactionPin)
-        {
-            var account = await _accountRepository.GetAccountById(accountId);
-
-            if (account is null)
-            {
-                throw new KeyNotFoundException("Account not found.");
-            }
-
-            var correctPin = Regex.IsMatch(transactionPin, @"^\d{4}$");
-
-            if (!correctPin)
-            {
-                throw new ArgumentException("Pin must contain exactly 4 digits.");
-            }
-
-            if (account.AccountSecurity?.TransactionPinHash != null)
-            {
-                throw new InvalidOperationException("Transaction PIN is already set. Use 'Forgot my PIN' to update.");
-            }
-
-            CreateTransactionPinHash(transactionPin, out byte[] pinHash, out byte[] pinSalt);
-
-            account.AccountSecurity = new AccountSecurityModel
-            {
-                TransactionPinHash = pinHash,
-                TransactionPinSalt = pinSalt
-            };
-        }
-
-        private void CreateTransactionPinHash(string pin, out byte[] pinHash, out byte[] pinSalt)
-        {
-            using (var hmac = new HMACSHA512())
-            {
-                pinSalt = hmac.Key;
-                pinHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(pin));
-            }
         }
 
         public string GenerateAccountNumber()
