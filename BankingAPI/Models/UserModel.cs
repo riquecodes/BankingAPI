@@ -16,5 +16,6 @@
         public DateTime? UpdatedAt { get; set; }
 
         public List<AccountModel> Accounts { get; set; } = new();
+        public UserSecurityModel? UserSecurity { get; set; }
     }
 }

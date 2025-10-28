@@ -25,11 +25,11 @@ namespace BankingAPI.Context
                 .Property(a => a.AccountType)
                 .HasConversion<int>();
 
-            // configure one-to-one relationship between Account and AccountSecurity
-            modelBuilder.Entity<AccountSecurityModel>()
-                .HasOne(s => s.Account)
-                .WithOne(a => a.AccountSecurity)
-                .HasForeignKey<AccountSecurityModel>(s => s.AccountId)
+            // configure one-to-one relationship between User and UserSecurity
+            modelBuilder.Entity<UserModel>()
+                .HasOne(u => u.UserSecurity)
+                .WithOne(s => s.User)
+                .HasForeignKey<UserSecurityModel>(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
