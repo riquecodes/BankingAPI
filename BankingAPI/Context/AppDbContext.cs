@@ -10,6 +10,7 @@ namespace BankingAPI.Context
 
         public DbSet<UserModel> Users { get; set; } = null!;
         public DbSet<AccountModel> Accounts { get; set; } = null!;
+        public DbSet<UserSecurityModel> UserSecurities { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
