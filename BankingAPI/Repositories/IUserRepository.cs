@@ -11,6 +11,8 @@ namespace BankingAPI.Repositories
         Task<UserModel?> GetFullUserByCpf(string cpf);
         Task<UserModel> CreateUser(UserModel user);
         Task<UserModel?> UpdateUser(int id, UserModel user);
+        Task<UserSecurityModel> CreateUserSecurity(UserSecurityModel userSecurity);
+        Task<UserSecurityModel?> UpdateUserSecurity(int userId, UserSecurityModel userSecurity);
         Task<bool> DeleteUserById(int id);
     }
 }

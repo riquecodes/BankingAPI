@@ -130,6 +130,31 @@ namespace BankingAPI.Repositories
             return updatedUser;
         }
 
+        public async Task<UserSecurityModel> CreateUserSecurity(UserSecurityModel userSecurity)
+        { 
+            await _context.UserSecurities.AddAsync(userSecurity);
+            await _context.SaveChangesAsync();
+            return userSecurity;
+        }
+
+        public async Task<UserSecurityModel?> UpdateUserSecurity(int userId, UserSecurityModel userSecurity)
+        { 
+            var updatedUserSecurity = await _context.UserSecurities
+                .FirstOrDefaultAsync(us => us.UserId == userId);
+
+            if (updatedUserSecurity is null)
+            {
+                return null;
+            }
+
+            updatedUserSecurity.TransactionPinHash = userSecurity.TransactionPinHash;
+            updatedUserSecurity.TransactionPinSalt = userSecurity.TransactionPinSalt;
+            updatedUserSecurity.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return updatedUserSecurity;
+        }
+
         public async Task<bool> DeleteUserById(int id)
         { 
             var userToDelete = await GetFullUserById(id);

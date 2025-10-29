@@ -97,6 +97,8 @@ namespace BankingAPI.Services
 
             await _accountRepository.CreateAccount(newAccount);
 
+            await SetTransactionPin(createdUser.Id, userRegister.TransactionPin);
+
             createdUser.Accounts = new List<AccountModel> { newAccount };
 
             return new UserResponseDTO
@@ -149,32 +151,33 @@ namespace BankingAPI.Services
                 throw new KeyNotFoundException("User not found.");
             }
 
-            var account = await _accountRepository.GetAccountById(user.Accounts.First().Id);
-
-            if (account is null)
-            {
-                throw new KeyNotFoundException("Account not found.");
-            }
-
-            var correctPin = Regex.IsMatch(transactionPin, @"^\d{4}$");
-
-            if (!correctPin)
+            if (string.IsNullOrWhiteSpace(transactionPin) || !Regex.IsMatch(transactionPin, @"^\d{4}$"))
             {
                 throw new ArgumentException("Pin must contain exactly 4 digits.");
             }
+            
+            SecurityUtils.CreateTransactionPinHash(transactionPin, out byte[] pinHash, out byte[] pinSalt);
 
             if (user.UserSecurity is not null)
             {
-                throw new InvalidOperationException("Transaction PIN is already set. Use 'Forgot my PIN' to update.");
+                user.UserSecurity.TransactionPinHash = pinHash;
+                user.UserSecurity.TransactionPinSalt = pinSalt;
+                user.UserSecurity.UpdatedAt = DateTime.Now;
+
+                await _userRepository.UpdateUserSecurity(user.Id, user.UserSecurity);
+                return;
             }
 
-            SecurityUtils.CreateTransactionPinHash(transactionPin, out byte[] pinHash, out byte[] pinSalt);
 
             user.UserSecurity = new UserSecurityModel
             {
                 TransactionPinHash = pinHash,
-                TransactionPinSalt = pinSalt
+                TransactionPinSalt = pinSalt,
+                CreatedAt = DateTime.Now,
+                UserId = user.Id
             };
+
+            await _userRepository.CreateUserSecurity(user.UserSecurity);
         }
 
         private void ValidateRegisterDTO(RegisterDTO userRegister)
