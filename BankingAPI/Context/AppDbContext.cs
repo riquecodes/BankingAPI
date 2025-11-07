@@ -24,7 +24,7 @@ namespace BankingAPI.Context
             // map enum to int in database
             modelBuilder.Entity<AccountModel>()
                 .Property(a => a.AccountType)
-                .HasConversion<int>();
+                .HasConversion<byte>();
 
             // configure one-to-one relationship between User and UserSecurity
             modelBuilder.Entity<UserModel>()
