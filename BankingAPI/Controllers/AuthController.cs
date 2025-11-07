@@ -28,8 +28,8 @@ namespace BankingAPI.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<UserResponseDTO>> Register([FromBody] RegisterDTO userRegister)
         {
-            var createdUser = await _authService.Register(userRegister);
-            return Ok(new { message = "User registered successfully!" });
+            var registerResponse = await _authService.Register(userRegister);
+            return Ok(registerResponse);
         }
 
         [Authorize]

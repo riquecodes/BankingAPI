@@ -23,7 +23,7 @@ namespace BankingAPI.Services
             _accountRepository = accountRepository;
         }
 
-        public async Task<AuthResponseDTO> Login(LoginDTO loginDTO)
+        public async Task<UserResponseDTO> Login(LoginDTO loginDTO)
         {
             var user = await _userRepository.GetFullUserByCpf(loginDTO.Cpf);
 
@@ -45,16 +45,22 @@ namespace BankingAPI.Services
                 throw new UnauthorizedAccessException("User is inactive!");
             }
 
-            var token = SecurityUtils.GenerateJwtToken(user, _configuration);
-
-            return new AuthResponseDTO
+            var authUser = new AuthResponseDTO
             {
-                Token = token,
+                Token = SecurityUtils.GenerateJwtToken(user, _configuration)
+            };
+
+            return new UserResponseDTO
+            {
                 Id = user.Id,
                 Name = user.Name,
                 Cpf = user.Cpf,
+                Email = user.Email,
+                Celphone = user.Celphone,
                 Role = user.Role,
-                TemporaryPassword = user.TemporaryPassword
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt,
+                Auth = authUser
             };
         }
 
@@ -99,7 +105,10 @@ namespace BankingAPI.Services
 
             await SetTransactionPin(createdUser.Id, userRegister.TransactionPin);
 
-            createdUser.Accounts = new List<AccountModel> { newAccount };
+            var authUser = new AuthResponseDTO
+            {
+                Token = SecurityUtils.GenerateJwtToken(newUser, _configuration)
+            };
 
             return new UserResponseDTO
             {
@@ -110,7 +119,8 @@ namespace BankingAPI.Services
                 Celphone = createdUser.Celphone,
                 Role = createdUser.Role,
                 IsActive = createdUser.IsActive,
-                CreatedAt = createdUser.CreatedAt
+                CreatedAt = createdUser.CreatedAt,
+                Auth = authUser
             };
         }
 
@@ -167,7 +177,6 @@ namespace BankingAPI.Services
                 await _userRepository.UpdateUserSecurity(user.Id, user.UserSecurity);
                 return;
             }
-
 
             user.UserSecurity = new UserSecurityModel
             {
