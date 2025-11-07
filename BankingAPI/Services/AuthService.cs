@@ -95,15 +95,12 @@ namespace BankingAPI.Services
             var newAccount = new AccountModel
             {
                 AccountNumber = GenerateAccountNumber(),
-                Balance = 0,
-                IsActive = true,
-                CreatedAt = DateTime.Now,
                 UserId = createdUser.Id
             };
 
             await _accountRepository.CreateAccount(newAccount);
 
-            await SetTransactionPin(createdUser.Id, userRegister.TransactionPin);
+            createdUser.Accounts = new List<AccountModel> { newAccount };
 
             var authUser = new AuthResponseDTO
             {
