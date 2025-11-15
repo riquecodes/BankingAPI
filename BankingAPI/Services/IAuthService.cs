@@ -8,5 +8,6 @@ namespace BankingAPI.Services
         Task<UserResponseDTO> Register(RegisterDTO userRegister);
         Task ChangePassword(int userId, string currentPassword, string newPassword);
         Task SetTransactionPin(int userId, string pin);
+        Task ChangeTransactionPin(int userId, string currentPin, string newPin);
     }
 }

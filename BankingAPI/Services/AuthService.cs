@@ -123,8 +123,6 @@ namespace BankingAPI.Services
 
         public async Task ChangePassword(int userId, string currentPassword, string newPassword)
         {
-            SecurityUtils.ValidatePasswordStrength(newPassword);
-
             var user = await _userRepository.GetFullUserById(userId);
 
             if (user is null)
@@ -138,6 +136,8 @@ namespace BankingAPI.Services
                 _logger.LogWarning("Change Password attempt failed for ID {id}: incorrect current password", userId);
                 throw new UnauthorizedAccessException("Current password is incorrect!");
             }
+
+            SecurityUtils.ValidatePasswordStrength(newPassword);
 
             using (var hmac = new HMACSHA512())
             {
@@ -185,6 +185,8 @@ namespace BankingAPI.Services
 
             await _userRepository.CreateUserSecurity(user.UserSecurity);
         }
+
+        public async Task ChangeTransactionPin(int userId, ChangeTransactionPinDTO changeTransactionPinDTO)
 
         private void ValidateRegisterDTO(RegisterDTO userRegister)
         {

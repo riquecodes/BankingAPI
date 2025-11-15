@@ -56,5 +56,20 @@ namespace BankingAPI.Controllers
             await _authService.SetTransactionPin(userId, transactionPin.TransactionPin);
             return Ok(new { message = "Transaction PIN set successfully!" });
         }
+
+        [Authorize]
+        [HttpPost("{userId}/change-transaction-pin")]
+        public async Task<ActionResult> ChangeTransactionPin(int userId, [FromBody] ChangeTransactionPinDTO changeTransactionPinDTO)
+        {
+            var authencticatedUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            if (userId != authencticatedUserId)
+            {
+                return Forbid();
+            }
+
+            await _authService.ChangeTransactionPin(userId, changeTransactionPinDTO.CurrentPin, changeTransactionPinDTO.NewPin);
+            return Ok(new { message = "Transaction PIN changed successfully!" });
+        }
     }
 }
